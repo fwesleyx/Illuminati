@@ -73,3 +73,18 @@ join bus_unit_dsgn_grp bus on bus.bus_unit_idn = ir.bus_unit_idn
 where uda.att_nme='MM-PROD-VISIBILITY'
 and ui.val_txt != 'H'
 Group by bus.short_nme
+
+
+BEGIN TRAN
+select * from uda_definition where  att_nme='MM-PROD-VISIBILITY' 
+update uda_definition set curr_actv_ind='N',mod_dte=getdate() where  att_nme='MM-PROD-VISIBILITY'
+select * from uda_definition where  att_nme='MM-PROD-VISIBILITY' 
+COMMIT TRAN
+
+select ROW_NUMBER() OVER (ORDER BY uit.att_req_ind) #,uit.att_req_ind,uda.att_nme, uda.att_idn,uda.curr_actv_ind,it.item_typ_dsc--,uvl.dsc,uvl.val_txt
+from uda_definition uda 
+join uda_item_type uit on uit.att_idn = uda.att_idn
+join item_type it on it.item_typ_cde = uit.item_typ_cde 
+--join item_sap_material_type ismt on ismt.item_typ_cde = uit.item_typ_cde 
+--join uda_validation_list uvl on uvl.att_idn = uda.att_idn
+where uda.att_nme='MM-PROD-VISIBILITY' AND ismt.cre_ind='Y'
