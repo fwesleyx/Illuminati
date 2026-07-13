@@ -1,6 +1,14 @@
+USE [Pdm]
+GO
+DROP PROCEDURE IF EXISTS [Idet].[GetIdetUdaSAPReport]  
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO    
     
-    
-ALTER     PROCEDURE [Idet].[GetIdetUdaSAPReport]        
+CREATE     PROCEDURE [Idet].[GetIdetUdaSAPReport]        
 ( @XmlDoc   XML    = NULL    
  ,@type_class  VARCHAR(8)  = NULL        
  ,@bus_unit_idn  VARCHAR(8)  = NULL     

@@ -1,4 +1,13 @@
-  
+ USE [PdmShared_1_0]
+GO
+DROP PROCEDURE IF EXISTS [ItemBom].[ItemAttributeGetByClass] 
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_NULLS ON
+GO    
+    
   
 /******************************************************************************    
 ** Attribute.AttributeGetByClass    

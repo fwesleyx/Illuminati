@@ -1,3 +1,14 @@
+USE [speed]
+GO
+
+/****** Object:  StoredProcedure [dbo].[wsp_idet_excel_sap_meta_sql]    Script Date: 2/10/2026 3:46:28 PM ******/
+DROP PROCEDURE IF EXISTS [dbo].[wsp_idet_excel_sap_meta_sql]
+GO
+
+/****** Object:  StoredProcedure [dbo].[wsp_idet_excel_sap_meta_sql]    Script Date: 2/10/2026 3:46:29 PM ******/
+SET ANSI_NULLS ON
+GO
+
 ALTER PROCEDURE dbo.wsp_idet_excel_sap_meta_sql   
 (@slct NVARCHAR(max) OUTPUT  
 ,@in NVARCHAR(max) OUTPUT  

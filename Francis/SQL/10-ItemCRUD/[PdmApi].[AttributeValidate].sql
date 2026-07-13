@@ -27,6 +27,7 @@ CREATE PROCEDURE [PdmApi].[AttributeValidate]
 			 navishnx 12/07/2023 CHG11063941 Incase of NULL, converting sap.ValueTxt to empty
 			 hnarang 02/24/2025 - IAO Feature flag and Product Hierachy removal changes for IAO R3
 			 settupax 06/01/2026 - Required and Locking attributes for IAO R3
+             francisx 29/06/2026 - ItemCRUD:Defect Fix increase the column size Attribute Temp table
 *** Copyright 2017 Intel Corporation, all rights reserved.      
 ******************************************************************************/ 
 AS
@@ -91,7 +92,7 @@ BEGIN
 		IsRequired BIT, -- if true: it is a must have value
 		DataType VARCHAR(10), -- acceptable datatype of the value
 		DataLen INT NULL, -- acceptable length of the value
-		DefaultValue VARCHAR(50), -- assign this default value to the attribute if not passed
+		DefaultValue VARCHAR(255), -- assign this default value to the attribute if not passed
 		IsEditable BIT, -- if false: attribute cannot be updated
 		HasValidList BIT, -- if true: validate the attribute value against the list only.	
 		RestrictToValidList BIT, -- if false: value of the attribute can be selected from the list or entered as well
