@@ -1,10 +1,13 @@
 USE [Pdm]
 GO
+DROP PROCEDURE IF EXISTS [BulkImport].[AttributeValidate]
+GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
-GO
+GO    
+    
 
 CREATE PROCEDURE [BulkImport].[AttributeValidate]
     (
@@ -24,6 +27,7 @@ CREATE PROCEDURE [BulkImport].[AttributeValidate]
 -- rtatikon	13/12/2025 added IAO_ENABLED_FLAG for PRODUCT_LINE validation
 -- raviarav     05/11/2026 added IAO UNBW material type for IAO validation
 -- ajeevapx : 04/02/2026 : IAO changes for required an locking indicator based on the item_attribute_lifecycle table
+-- fwesleyx : 06/05/2026 : TWC5924-2920 Remove Product Visibility attribute   
 /************************************************************/
 AS
     BEGIN
@@ -143,6 +147,16 @@ like Royalty Payable and if we update above those attribute will be ommited */
                 UPDATE  #valid_chars
                 SET     RestrictToValidList = 'N'
                 WHERE   AttributeNm IN ( 'MM-ITEM-MARKET-NAME' );
+
+/*  MM-PROD-VISIBILITY being removed from system  */
+                UPDATE  #valid_chars
+                SET     RequiredInd              = 'N' ,
+                        RestrictToValidList      = 'N' ,
+                        RestrictToValidValuesInd = 'N' ,
+                        ErrorMessage             = NULL
+                WHERE   AttributeNm = 'MM-PROD-VISIBILITY';
+
+/* spec sequential is not required because is calculated */                
 /* spec sequential is not required becuase is calculated */
  -- commented for this MM-SPEC-NUMBER validation part reason: item attribute lifecycle table attribute is mandatory
 		--UPDATE  #valid_chars
@@ -487,4 +501,10 @@ like Royalty Payable and if we update above those attribute will be ommited */
     END;
 
 
+GO
+
+ALTER AUTHORIZATION ON [BulkImport].[AttributeValidate] TO  SCHEMA OWNER 
+GO
+
+GRANT EXECUTE ON [BulkImport].[AttributeValidate] TO [ESPEED] AS [dbo]
 GO
