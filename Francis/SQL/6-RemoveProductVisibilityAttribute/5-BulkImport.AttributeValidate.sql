@@ -1,6 +1,6 @@
 USE [Pdm]
 GO
-DROP PROCEDURE IF EXISTS [BulkImport].[AttributeValidate]
+DROP PROCEDURE IF EXISTS [[BulkImport].[AttributeValidate]]
 GO
 
 SET QUOTED_IDENTIFIER ON
@@ -501,10 +501,4 @@ like Royalty Payable and if we update above those attribute will be ommited */
     END;
 
 
-GO
-
-ALTER AUTHORIZATION ON [BulkImport].[AttributeValidate] TO  SCHEMA OWNER 
-GO
-
-GRANT EXECUTE ON [BulkImport].[AttributeValidate] TO [ESPEED] AS [dbo]
 GO

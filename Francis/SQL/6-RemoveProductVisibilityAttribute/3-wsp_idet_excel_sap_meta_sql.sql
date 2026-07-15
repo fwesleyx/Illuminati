@@ -30,9 +30,13 @@ BEGIN
  CREATE TABLE #clm_sort (sort_ord INT IDENTITY, att_idn INT)  
   
  INSERT #clm_sort (att_idn)  
-  SELECT att_idn FROM #idet_sap_meta 
-  WHERE att_nme <>'MM-PROD-VISIBILITY'
-  ORDER BY sort_grp, sort_ord, hdr_nme  
+  SELECT sap.att_idn  
+  FROM #idet_sap_meta AS sap  
+  LEFT JOIN uda_definition AS ud  
+    ON ud.att_idn = sap.att_idn  
+   AND ud.curr_actv_ind = 'Y'  
+  WHERE ISNULL(sap.att_nme, ISNULL(ud.att_nme, '')) <> 'MM-PROD-VISIBILITY'  
+  ORDER BY sap.sort_grp, sap.sort_ord, sap.hdr_nme
   
  SET @slct = ''  
  SET @in   = ''  

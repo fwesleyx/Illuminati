@@ -1,5 +1,7 @@
 USE [Pdm]; 
 GO
+DROP PROCEDURE IF EXISTS [ItemBom].[ItemAttributeValueValidate]
+GO
 
 SET QUOTED_IDENTIFIER ON
 GO
@@ -21,6 +23,7 @@ CREATE procedure [ItemBom].[ItemAttributeValueValidate] @ModelNm varchar(63) = '
 ** mirzahax 11/03/2017 user story -45954 Create new material type: ZSUB in PDM UI
 ** Added duplicate prev_ref_id changes
 ** ajeevapx : 09/06/2026 : IAO changes for required based on the item_attribute_lifecycle table
+** fwesleyx : 06/05/2026 : TWC5924-2920 Remove Product Visibility attribute
 ******************************************************************************/
 begin
 	DECLARE @IaoActiveInd VARCHAR(1);
@@ -248,6 +251,7 @@ begin
 				AND NULLIF(iav.ValueTxt, '') IS NULL
 				AND iav.ValueNbr IS NULL
 				AND iav.ValueDt IS NULL
+        AND ia.AttributeNm != 'MM-PROD-VISIBILITY'  -- MM-PROD-VISIBILITY being removed from system
 				AND (
 					ica.RequiredInd = 'Y'     -- class-level required
 					OR il.RequiredInd = 'Y'       -- lifecycle-level required
@@ -263,7 +267,8 @@ begin
           join ItemBom.ItemClassAttribute ica on ica.AttributeId = ia.AttributeId and ica.ClassCd = i.ClassCd            
           where i.IsValid = 1            
             and nullif(iav.ValueTxt,'') is null and (iav.ValueNbr is null)  and nullif(iav.ValueDt,'') is null            
-            and ica.RequiredInd = 'Y'   
+            and ica.RequiredInd = 'Y' 
+            and ia.AttributeNm != 'MM-PROD-VISIBILITY' -- MM-PROD-VISIBILITY being removed from system
         END        
     END
     ELSE
@@ -277,7 +282,7 @@ begin
       where i.IsValid = 1            
         and nullif(iav.ValueTxt,'') is null and (iav.ValueNbr is null)  and nullif(iav.ValueDt,'') is null            
         and ica.RequiredInd = 'Y'      
-
+        and ia.AttributeNm != 'MM-PROD-VISIBILITY'  -- MM-PROD-VISIBILITY being removed from system
     END
 
 
@@ -376,4 +381,10 @@ begin
 /** cleanup **/
 	drop table #dupl
 end
+GO
+
+ALTER AUTHORIZATION ON [ItemBom].[ItemAttributeValueValidate] TO  SCHEMA OWNER 
+GO
+
+GRANT EXECUTE ON [ItemBom].[ItemAttributeValueValidate] TO [ESPEED] AS [dbo]
 GO
