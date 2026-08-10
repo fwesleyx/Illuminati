@@ -16,7 +16,7 @@ ALTER PROCEDURE  [Idet].[IdetTmplPreview]
 ,@usr_acct  CHAR(8) = NULL      
 ,@debug   CHAR(1)  = 'N'                                
 ,@XmlDoc  XML   = NULL            
-,@lvl_idn VARCHAR(10)=null       
+,@lvl_idn VARCHAR(10)=null      
       
 ) AS         
       
@@ -25,7 +25,8 @@ ALTER PROCEDURE  [Idet].[IdetTmplPreview]
 *** History: 02/31/07 JP Created                                
 *** smwoodwo 02/26/08 altered to work with Excel Live                                
 *** jhoskins 11/25/08 Excel Live Merge        
-*** raviarav 14/04/25 Add IAO        
+*** raviarav 14/04/25 Add IAO
+*** sathiesh 10/08/26 TWC5924-3355--plant_ext_filter based on div_id        
 *** Copyright 2007 - 2008 Intel Corporation, all rights reserved.                                
 ******************************************************************************/       
       
@@ -192,7 +193,46 @@ BEGIN
   ,@debug  = @debug       
  ,@usr_acct=@usr_acct                     
  DELETE FROM #tmpl_scty WHERE bus_unit_idn != @bus_unit_idn                                
-                                
+
+  DECLARE @divisionId int 
+DECLARE @DescriptorId INT        
+ DECLARE @BusinessUnitId INT 
+ DECLARE @RoleCount  TINYINT = 0  
+ DECLARE @IAOBusinessUnitNm   VARCHAR(16)  = 'IAO'   
+ DECLARE @usr_acct  CHAR(8)  
+  DECLARE @NgsPreferencesIaoKey  VARCHAR(40) = 'NGS_HOME_ACTIVE_IAO_ROLE'
+  -- Retrieve NGS Business Unit Id for Business Unit = IAO        
+ SELECT @BusinessUnitId = BusinessUnitId        
+ FROM [Framework].[Core_BusinessUnit]        
+ WHERE BusinessUnitNm = @IAOBusinessUnitNm        
+ -- Retrieve NGS Security Descriptor Id for BusinessUnitId        
+ SELECT @DescriptorId = DescriptorId        
+ FROM [Security].[Descriptor]        
+ WHERE DescriptorNm = 'BusinessUnitId'        
+ -- Retrieve IAO Role Count based on user's wwid       
+ SELECT @RoleCount = COUNT(*)        
+ FROM [Security].[Core_UserRole] scur        
+ JOIN [Security].[UserRoleDescriptor] surd ON scur.Wwid = surd.Wwid AND scur.RoleId = surd.RoleId AND surd.DescriptorId = @DescriptorId AND surd.DescriptorValue = @BusinessUnitId        
+ WHERE scur.Wwid = @usr_acct        
+ -- Identify active IAO role from NGS Workspace Preferences if @Wwid has 2 IAO roles        
+ IF(@RoleCount = 2)        
+ BEGIN        
+  SELECT @divisionId = sref.DivisionId        
+  FROM [Security].[UserPreference] sup      
+  JOIN [Security].[RefIaoDivisionRole] sref ON sref.RoleNme = sup.SettingValue COLLATE SQL_Latin1_General_CP1_CI_AS -- added to resolve collation conflict      
+  WHERE Wwid = @usr_acct AND RefPrefTypeKey = @NgsPreferencesIaoKey        
+ END        
+ ELSE        
+ -- Retrieve from NGS Role Assignment if @Wwid has only 1 IAO role        
+ IF(@RoleCount = 1)        
+ BEGIN        
+  SELECT @divisionId = sref.DivisionId        
+  FROM [Security].[Core_UserRole] scur        
+  JOIN [Security].[UserRoleDescriptor] surd ON scur.Wwid = surd.Wwid AND scur.RoleId = surd.RoleId AND surd.DescriptorId = @DescriptorId AND surd.DescriptorValue = @BusinessUnitId        
+  JOIN [Security].[Core_Role] scr ON scur.RoleId = scr.RoleId      
+  JOIN [Security].[RefIaoDivisionRole] sref ON sref.RoleNme = scr.RoleCd COLLATE SQL_Latin1_General_CP1_CI_AS -- added to resolve collation conflict      
+  WHERE scur.Wwid = @usr_acct        
+ END                                      
 /**************************************************************************************************                                
 *** get templates valid for the current material type/class/design group/user rights combination**/                                  
  INSERT INTO @tmpl_dtl(tmpl_idn, par_ent_nme, title, src_idn)                                
@@ -282,11 +322,13 @@ FROM speed.dbo.entity te
   FROM speed.dbo.entity te                                 
   JOIN speed.dbo.template tt  ON te.ent_idn  = tt.parent_ent_idn                                
   JOIN #tmpl_scty ts  ON tt.bus_unit_idn = ts.bus_unit_idn                                
-  JOIN speed.dbo.entity_related ter ON ter.child_ent_idn= te.ent_idn                                 
+  JOIN speed.dbo.entity_related ter ON ter.child_ent_idn= te.ent_idn
+  JOIN Templates.TemplatePlantValue tpv ON tpv.tmpl_idn = tt.tmpl_idn
+  JOIN Manufacturing.ManufacturingPlant mp ON mp.plnt_cde = tpv.plant_idn                           
   WHERE tt.actv_ind = 'Y'      --a template that is active                                
     AND tt.admin_ind = 'N'                                
     AND te.src_idn = '3'                                
-    AND UPPER(te.ent_nme)='PLANT EXT'                                
+    AND UPPER(te.ent_nme)='PLANT EXT' AND mp.DivisionId = @divisionId                               
   ORDER BY te.src_idn, upper(tt.title)                                
                                   
   SELECT @plnt_ext_tmpl_ct = @@rowcount                                    
