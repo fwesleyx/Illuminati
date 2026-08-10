@@ -15,6 +15,7 @@ ALTER PROCEDURE [dbo].[prc_idet_bulk_template_filter_get] (@usr_acct CHAR(8)) AS
 ** Purpose: Load WPF Excel Launcher data  
 ** History: smwoodwo 05/20/09 created  
 ** neeneli 07/25/19 filter new FG class from OCPLM   
+** francisx 05/08/26 - PLANT EXT TEMPLATE DOES NOT HAVE PLANTID, DIVISIONID
 ** Copyright 2008 Intel Corporation, all rights reserved.  
 ******************************************************************************/  
 BEGIN  
@@ -426,8 +427,13 @@ WHERE item_type.curr_actv_ind = 'Y'
    AND tmpl.admin_ind = 'N'  
   JOIN entity_related AS rltd ON rltd.child_ent_idn = prn_ent.ent_idn   
   JOIN #bus_units ON #bus_units.bus_unit_idn = tmpl.bus_unit_idn  
+  JOIN Pdm.[Templates].[TemplatePlantValue] tpv 
+    ON tpv.tmpl_idn = tmpl.tmpl_idn
+  JOIN Pdm.[Manufacturing].[ManufacturingPlant] mp 
+    ON mp.plnt_cde = tpv.plant_idn
   WHERE prn_ent.src_idn = 3  
     AND UPPER(prn_ent.ent_nme)='PLANT EXT'  
+    AND mp.DivisionId = @DivisionId  
   ORDER BY tmpl.bus_unit_idn, UPPER(tmpl.title)  
   
  SELECT NULL AS [<TABLENAME>plnt_ext_tmpl_idnOpt</TABLENAME>]  
