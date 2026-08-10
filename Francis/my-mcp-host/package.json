@@ -1,0 +1,27 @@
+{
+  "name": "my-mcp-host",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/mcpClient.js",
+  "types": "./dist/mcpClient.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/mcpClient.js",
+      "types": "./dist/mcpClient.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "tsx src/host.ts",
+    "build": "tsc",
+    "start": "node dist/host.js"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/server-filesystem": "^2026.7.10",
+    "dotenv": "^17.4.2",
+    "ollama": "^0.6.3"
+  }
+}

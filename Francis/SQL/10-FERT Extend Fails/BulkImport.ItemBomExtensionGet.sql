@@ -25,6 +25,7 @@ AS	/************************************************************/
 	-- @debug = enable/disable debugging
 	-- Called by speed_2max.[BulkImport].[ItemBomExtensionProcess]
 	-- 2/13/2026   WNG5   IAO Add PlantId
+	-- 16/07/2026 fwesleyx IAODTM-19490 – Defect PDM Bulk Import: Item Was Not Extending for FERT & DEIN Material Types
 	/************************************************************/
 BEGIN
 	/**SET NOCOUNT ON added to prevent extra result sets from
@@ -142,9 +143,11 @@ BEGIN
 	-- only send the ones in Error or not sent
 	IF  @ItemOrBom = 'I' 
 	BEGIN
-		SELECT @qty = COUNT(*) FROM #bom_extend_data
-		WHERE (item_extend_status IS NULL) 				
-		AND visible = 1
+		   SELECT @qty = COUNT(*) 
+        FROM   #bom_extend_data
+        WHERE  item_extend_status IS NULL       
+        AND    visible            = 1
+        AND    material_typ       <> 'FERT'  -- ✅ NEW: Exclude FERT rows
 		
 		--update temp to track item extension
 		UPDATE #itemtbl SET item_ext = 1 
@@ -197,6 +200,7 @@ BEGIN
 			FROM    #bom_extend_data
 			WHERE ISNULL(item_extend_status,'') NOT IN ('I','S') AND				
 				visible = 1				
+				AND material_typ <> 'FERT'
 			ORDER BY sort_order;
 			PRINT 'Preparing for Item Save'
 		END
@@ -329,7 +333,7 @@ BEGIN
 			IF(@ItemOrBom = 'I')
 			BEGIN
 				UPDATE BulkImport.QueueItemBomExtension 
-				SET RowStatus = 'SUCCESS',	
+				SET RowStatus = 'FAILED',  -- ✅ FAILED not SUCCESS	
 				qty = @qty, 
 				RowErrors = @tran_Error, 
 				IsItemExtensionProcessed = 1
